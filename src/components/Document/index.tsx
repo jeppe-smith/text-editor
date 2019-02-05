@@ -1,5 +1,5 @@
 import React from 'react'
-import { EditorState, Plugin } from 'prosemirror-state'
+import { EditorState, Plugin, TextSelection } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { undo, redo, history } from 'prosemirror-history'
 import { keymap } from 'prosemirror-keymap'
@@ -25,6 +25,26 @@ function getBottomOffset(element: Element, subtractPadding = true) {
   return bottomOffset
 }
 
+function getStylePropertyValue(element: Element, property: string) {
+  return parseInt( getComputedStyle(element).getPropertyValue(property) || '0' )
+}
+
+function getInnerCoords(element: Element) {
+  const { top, right, bottom, left } = element.getBoundingClientRect()
+  const { scrollY, scrollX } = window
+  const paddingTop = getStylePropertyValue(element, 'padding-top')
+  const paddingRight = getStylePropertyValue(element, 'padding-right')
+  const paddingBottom = getStylePropertyValue(element, 'padding-bottom')
+  const paddingLeft = getStylePropertyValue(element, 'padding-left')
+
+  return {
+    top: top + scrollY + paddingTop,
+    right: right + scrollX - paddingRight,
+    bottom: bottom + scrollY - paddingBottom - paddingTop,
+    left: left + scrollX + paddingLeft,
+  }
+}
+
 const events = new Plugin({
   view(view) {
     return {
@@ -33,27 +53,25 @@ const events = new Plugin({
         const pageIndex = pages.findIndex(page => page.scrollHeight > page.clientHeight)
 
         if (pageIndex > -1) {
-          const pageNode = view.state.doc.child(pageIndex)
+          const { scrollX, scrollY } = window
           const pageElement = pages[pageIndex]
-          const pageOffset = getBottomOffset(pageElement)
-          let splitAtPos: number | null = null
+          const { bottom, right } = getInnerCoords(pageElement)
+          let pos
 
-          Array.from(pageElement.childNodes).forEach(childElement => {
-            if (splitAtPos === null && childElement instanceof HTMLElement) {
-              const childNodePos = view.posAtDOM(childElement, 0)
-              const childNode = view.state.doc.nodeAt(childNodePos)
-              const childOffset = getBottomOffset(childElement, false)
+          window.scrollTo(right, bottom)
 
-              if (pageOffset < childOffset) {
-                splitAtPos = childNodePos - 1
-              }
-            }
-          })
+          pos = view.posAtCoords({ top: bottom - 24, left: right - 8 })
 
-          if (splitAtPos !== null) {
+          window.scrollTo(scrollX, scrollY)
+
+          if (pos != null) {
+            const resolvedPos = view.state.doc.resolve(pos.pos)
+            const step = view.state.tr.split(resolvedPos.pos, resolvedPos.depth)
+            const newState = view.state.apply(step)
+
             view.updateState(
               view.state.apply(
-                view.state.tr.split(splitAtPos)
+                view.state.tr.split(resolvedPos.pos, resolvedPos.depth)
               )
             )
           }

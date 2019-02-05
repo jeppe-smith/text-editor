@@ -28,8 +28,6 @@ div {
   background-color: #fff;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
   cursor: text;
-  overflow: hidden;
-  position: relative;
 }
 
 .page + .page {
