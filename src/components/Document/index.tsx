@@ -4,37 +4,8 @@ import { EditorView } from 'prosemirror-view'
 import { undo, redo, history } from 'prosemirror-history'
 import { keymap } from 'prosemirror-keymap'
 import { baseKeymap } from 'prosemirror-commands'
-import { NodeSpec, Schema } from 'prosemirror-model'
-import pagination from '../../plugins/pagination'
-
-function createNode(options: NodeSpec) {
-  return options
-}
-
-const schema = new Schema({
-  nodes: {
-    doc: createNode({
-      content: 'page+'
-    }),
-    page: createNode({
-      content: 'block+',
-      toDOM() {
-        return ['div', { class: 'page' }, 0]
-      }
-    }),
-    paragraph: createNode({
-      content: 'inline*',
-      group: 'block',
-      toDOM() {
-        return ['p', 0]
-      },
-      attrs: {
-        'origin': { default: null }
-      }
-    }),
-    text: createNode({ group: 'inline' }),
-  }
-})
+import pagination from '../../prosemirror/plugins/pagination'
+import schema from '../../prosemirror/schema'
 
 type OwnProps = {}
 type StateProps = {}
@@ -47,7 +18,6 @@ type DocumentState = {}
  */
 class Document extends React.PureComponent<DocumentProps, DocumentState> {
   documentRef: HTMLDivElement | null = null
-  editorView: EditorView | null = null
   editorState: EditorState
 
   constructor(props: DocumentProps) {
@@ -70,19 +40,7 @@ class Document extends React.PureComponent<DocumentProps, DocumentState> {
 
   componentDidMount() {
     if (this.documentRef !== null) {
-      const editorView = new EditorView(
-        this.documentRef,
-        {
-          state: this.editorState,
-          dispatchTransaction(transaction) {
-            // console.log(transaction)
-            const newState = editorView.state.apply(transaction);
-            editorView.updateState(newState);
-          }
-        }
-      )
-
-      this.editorView = editorView
+      new EditorView(this.documentRef, { state: this.editorState })
     }
   }
 
