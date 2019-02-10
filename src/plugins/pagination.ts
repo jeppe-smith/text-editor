@@ -30,7 +30,7 @@ function getInnerCoords(element: Element) {
   }
 }
 
-const pluginKey = new PluginKey('pagination')
+export const pluginKey = new PluginKey('pagination')
 
 export default new Plugin({
   view() {

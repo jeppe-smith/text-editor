@@ -5,7 +5,7 @@ import { undo, redo, history } from 'prosemirror-history'
 import { keymap } from 'prosemirror-keymap'
 import { baseKeymap } from 'prosemirror-commands'
 import { NodeSpec, Schema } from 'prosemirror-model'
-import pagination from '../../pagination'
+import pagination from '../../plugins/pagination'
 
 function createNode(options: NodeSpec) {
   return options
