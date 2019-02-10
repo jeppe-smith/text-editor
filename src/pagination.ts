@@ -138,8 +138,16 @@ export default new Plugin({
     }
   },
   appendTransaction(transactions, prevState, state) {
-    if (transactions[0].getMeta(pluginKey) === 'split') {
-      return
+    /**
+     * Skip these transactions.
+     */
+    if (transactions.length === 1 && !transactions[0].isGeneric) {
+      if (
+        transactions[0].getMeta(pluginKey) === 'split' ||
+        transactions[0].getMeta('pointer')
+      ) {
+        return
+      }
     }
 
     let transaction = state.tr.setMeta(pluginKey, 'join')
