@@ -7,7 +7,7 @@ import uuid from 'uuid/v4'
 const historyKey = new PluginKey("history")
 
 /**
- * ReplaceStep class is wrongly typed in prosemirror-transform.
+ * ReplaceStep class is wrongly typed in @types/prosemirror-transform.
  */
 interface IReplaceStep extends ReplaceStep {
   from: number
@@ -119,14 +119,33 @@ export default new Plugin({
              * If no node could be determined at the position it is unsafe to split.
              */
             if (node != null) {
-              if (node.isText) {
+              let splitAtPos = resolvedPosition.pos
+              let splitAtDepth = resolvedPosition.depth
+
+              /**
+               * Prevent empty nodes as result of splitting.
+               */
+              if (resolvedPosition.parentOffset === 0) {
+                splitAtDepth -= 1
+                splitAtPos -= 1
+                node = view.state.doc.nodeAt(splitAtPos)!
+              } else if (resolvedPosition.parentOffset === node.content.size) {
+                splitAtDepth += 1
+                splitAtPos += 1
+                node = view.state.doc.nodeAt(splitAtPos)!
+              }
+
+              if (!node.isText) {
+                node.attrs = { ...resolvedPosition.parent.attrs, origin: uuid() }
+              } else {
                 resolvedPosition.parent.attrs = { ...resolvedPosition.parent.attrs, origin: uuid() }
               }
+
 
               view.dispatch(
                 view.state.tr
                   .setMeta(pluginKey, 'split')
-                  .split(resolvedPosition.pos, resolvedPosition.depth)
+                  .split(splitAtPos, splitAtDepth)
               )
             }
           }
@@ -143,17 +162,20 @@ export default new Plugin({
     let shouldJoin = false
 
     /**
-     * If you want to delete the last node in a page node it's the paeg node that gets
-     * removed and the child node gets moved up to the previous page. This is not what 
-     * so when a page is removed we join the child node and the last child node of the
-     * previous page.
+     * When a page is removed we need to check if the last child of the previous page
+     * can be joined with the first child of the removed page to prevent the update function
+     * splitting them again and no apparent change happening.
      */
     if (state.doc.childCount < prevState.doc.childCount) {
       const joinPos = state.doc.resolve(state.selection.$anchor.pos - 1)
-      
+
       if (canJoin(state.doc, joinPos.pos)) {
         transaction.join(joinPos.pos)
 
+        /**
+         * If the node we're coming from is empty we want to treat the replace as a delete
+         * of the last node of the node that we just joined with.
+         */
         if (joinPos.nodeAfter!.content.size > 0 && joinPos.nodeBefore!.content.size > 0) {
           transaction.replace(
             transaction.mapping.mapResult(joinPos.pos).pos - 1,
