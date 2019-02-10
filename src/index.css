@@ -28,6 +28,11 @@ div {
   background-color: #fff;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
   cursor: text;
+  overflow: hidden;
+}
+
+.page > *:last-child {
+  margin-bottom: 0;
 }
 
 .page + .page {
