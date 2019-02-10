@@ -100,7 +100,8 @@ export default new Plugin({
             node = view.state.doc.nodeAt(resolvedPosition.pos)
 
             /**
-             * If no node could be determined at the position it is unsafe to split.
+             * TODO: If the positino resolves to an empty node then node will be null.
+             * This is not ideal as there may be nodes after the position so it should be split. 
              */
             if (node != null) {
               let splitAtPos = resolvedPosition.pos
