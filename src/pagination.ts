@@ -1,22 +1,6 @@
-import { EditorView } from 'prosemirror-view'
-import { EditorState, Transaction, Plugin, Selection, PluginKey,  } from 'prosemirror-state'
-import { ReplaceStep, Transform, canJoin } from 'prosemirror-transform';
-import { Slice, Node, Schema } from 'prosemirror-model'
+import { Plugin, PluginKey } from 'prosemirror-state'
+import { canJoin } from 'prosemirror-transform'
 import uuid from 'uuid/v4'
-
-const historyKey = new PluginKey("history")
-
-/**
- * ReplaceStep class is wrongly typed in @types/prosemirror-transform.
- */
-interface IReplaceStep extends ReplaceStep {
-  from: number
-  slice: Slice
-  structure: boolean
-  to: number
-}
-
-import { Step, StepResult } from 'prosemirror-transform';
 
 /**
  * Get the numerical value of a style prop.
