@@ -22,9 +22,9 @@ div {
 }
 
 .page {
-  width: 10.5cm;
-  height: 14.8cm;
-  padding: 2cm;
+  width: 21cm;
+  height: 29.7cm;
+  padding: 3cm;
   background-color: #fff;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
   cursor: text;
@@ -33,6 +33,10 @@ div {
 
 .page > *:last-child {
   margin-bottom: 0;
+}
+
+.page > *:first-child {
+  margin-top: 0;
 }
 
 .page + .page {
