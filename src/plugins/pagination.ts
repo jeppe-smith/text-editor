@@ -99,40 +99,40 @@ export default new Plugin({
             resolvedPosition = view.state.doc.resolve(position.pos)
             node = view.state.doc.nodeAt(resolvedPosition.pos)
 
+            let splitAtPos = resolvedPosition.pos
+            let splitAtDepth = resolvedPosition.depth
+
             /**
-             * TODO: If the positino resolves to an empty node then node will be null.
-             * This is not ideal as there may be nodes after the position so it should be split. 
+             * Prevent empty nodes as result of splitting.
              */
-            if (node != null) {
-              let splitAtPos = resolvedPosition.pos
-              let splitAtDepth = resolvedPosition.depth
-
-              /**
-               * Prevent empty nodes as result of splitting.
-               */
-              if (resolvedPosition.parentOffset === 0) {
-                splitAtDepth -= 1
-                splitAtPos -= 1
-                node = view.state.doc.nodeAt(splitAtPos)!
-              } else if (resolvedPosition.parentOffset === node.content.size) {
-                splitAtDepth += 1
-                splitAtPos += 1
-                node = view.state.doc.nodeAt(splitAtPos)!
-              }
-
-              if (!node.isText) {
-                node.attrs = { ...resolvedPosition.parent.attrs, origin: uuid() }
-              } else {
-                resolvedPosition.parent.attrs = { ...resolvedPosition.parent.attrs, origin: uuid() }
-              }
-
-
-              view.dispatch(
-                view.state.tr
-                  .setMeta(pluginKey, 'split')
-                  .split(splitAtPos, splitAtDepth)
-              )
+            if (resolvedPosition.parentOffset === 0) {
+              splitAtDepth -= 1
+              splitAtPos -= 1
+              node = view.state.doc.nodeAt(splitAtPos)!
+            } else if (resolvedPosition.parentOffset === resolvedPosition.parent.content.size) {
+              splitAtDepth += 1
+              splitAtPos += 1
+              node = view.state.doc.nodeAt(splitAtPos)!
             }
+
+            /**
+             * Node should not be null here but just in case.
+             */
+            if (node == null) {
+              throw Error(`could not split at resolved position ${resolvedPosition}`)
+            }
+
+            if (!node.isText) {
+              node.attrs = { ...resolvedPosition.parent.attrs, origin: uuid() }
+            } else {
+              resolvedPosition.parent.attrs = { ...resolvedPosition.parent.attrs, origin: uuid() }
+            }
+
+            view.dispatch(
+              view.state.tr
+                .setMeta(pluginKey, 'split')
+                .split(splitAtPos, splitAtDepth)
+            )
           }
         })
       }
