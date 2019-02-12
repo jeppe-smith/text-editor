@@ -22,13 +22,14 @@ div {
 }
 
 .page {
-  width: 10.5cm;
-  height: 14.8cm;
+  width: 21cm;
+  height: 29.7cm;
   padding: 2cm;
   background-color: #fff;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
   cursor: text;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .page > *:last-child {

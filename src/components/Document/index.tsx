@@ -29,7 +29,7 @@ class Document extends React.PureComponent<DocumentProps, DocumentState> {
         history(),
         keymap({"Mod-z": undo, "Mod-y": redo}),
         keymap(baseKeymap),
-        pagination,
+        pagination(),
       ]
     })
 

@@ -1,11 +1,8 @@
 import { Schema, NodeSpec } from 'prosemirror-model'
-import { schema } from 'prosemirror-schema-basic';
 
 function createNode(options: NodeSpec) {
   return options
 }
-
-schema
 
 export default new Schema({
   nodes: {
@@ -30,8 +27,8 @@ export default new Schema({
           }
         }
       }],
-      toDOM() {
-        return ['p', 0]
+      toDOM(node) {
+        return ['p', { ...node.attrs }, 0]
       },
       attrs: {
         'origin': { default: null }
