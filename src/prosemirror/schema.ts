@@ -11,6 +11,7 @@ export default new Schema({
     }),
     page: createNode({
       content: 'block+',
+      isolating: true,
       parseDOM: [{ tag: '.page' }],
       toDOM() {
         return ['div', { class: 'page' }, 0]
