@@ -1,40 +1,41 @@
 import { Schema, NodeSpec } from 'prosemirror-model'
+import { tableNodes } from 'prosemirror-tables'
 
 function createNode(options: NodeSpec) {
   return options
 }
 
-export default new Schema({
+const schema = new Schema({
   nodes: {
     doc: createNode({
       content: 'page+'
     }),
     page: createNode({
-      content: 'block+',
-      isolating: true,
+      content: 'block*',
       parseDOM: [{ tag: '.page' }],
       toDOM() {
         return ['div', { class: 'page' }, 0]
       }
     }),
+    ...tableNodes({
+      tableGroup: 'block',
+      cellContent: 'block',
+      cellAttributes: {}
+    }),
     paragraph: createNode({
       content: 'inline*',
       group: 'block',
-      parseDOM: [{
-        tag: 'p',
-        getAttrs(dom) {
-          return {
-            'origin': (dom as Element).getAttribute('origin')
-          }
+      parseDOM: [
+        {
+          tag: 'p'
         }
-      }],
-      toDOM(node) {
-        return ['p', { ...node.attrs }, 0]
-      },
-      attrs: {
-        'origin': { default: null }
+      ],
+      toDOM() {
+        return ['p', 0]
       }
     }),
-    text: createNode({ group: 'inline' }),
+    text: createNode({ group: 'inline' })
   }
 })
+
+export default schema

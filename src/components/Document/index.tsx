@@ -27,15 +27,13 @@ class Document extends React.PureComponent<DocumentProps, DocumentState> {
       schema,
       plugins: [
         history(),
-        keymap({"Mod-z": undo, "Mod-y": redo}),
+        keymap({ 'Mod-z': undo, 'Mod-y': redo }),
         keymap(baseKeymap),
-        pagination(),
+        pagination()
       ]
     })
 
-    this.state = {
-      
-    }
+    this.state = {}
   }
 
   componentDidMount() {
@@ -45,9 +43,7 @@ class Document extends React.PureComponent<DocumentProps, DocumentState> {
   }
 
   render() {
-    return (
-      <div className="document" ref={ref => this.documentRef = ref}></div>
-    )
+    return <div className="document" ref={(ref) => (this.documentRef = ref)} />
   }
 }
 
