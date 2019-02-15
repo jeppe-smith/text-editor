@@ -24,24 +24,20 @@ div {
 .page {
   width: 14.8cm;
   height: 21cm;
-  padding: 2cm;
+  padding: 50pt 72pt;
   background-color: #fff;
   box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
   cursor: text;
-  overflow: hidden;
   box-sizing: border-box;
-}
-
-.page > *:last-child {
-  margin-bottom: 0;
-}
-
-.page > *:first-child {
-  margin-top: 0;
 }
 
 .page + .page {
   margin-top: 3rem;
+}
+
+p {
+  font-size: 11pt;
+  line-height: 1.5;
 }
 
 .editor [contenteditable="true"] {

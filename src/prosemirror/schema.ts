@@ -10,11 +10,18 @@ export default new Schema({
       content: 'page+'
     }),
     page: createNode({
-      content: 'block+',
+      content: 'wrapper+',
       isolating: true,
       parseDOM: [{ tag: '.page' }],
       toDOM() {
         return ['div', { class: 'page' }, 0]
+      }
+    }),
+    wrapper: createNode({
+      content: 'block+',
+      isolating: true,
+      toDOM() {
+        return ['div', 0]
       }
     }),
     paragraph: createNode({
