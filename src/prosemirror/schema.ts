@@ -12,7 +12,6 @@ const schema = new Schema({
     }),
     page: createNode({
       content: 'wrapper+',
-      isolating: true,
       parseDOM: [{ tag: '.page' }],
       toDOM() {
         return ['div', { class: 'page' }, 0]
@@ -20,7 +19,6 @@ const schema = new Schema({
     }),
     wrapper: createNode({
       content: 'block+',
-      isolating: true,
       toDOM() {
         return ['div', 0]
       }
