@@ -45,11 +45,7 @@ function getInnerCoords(element: Element) {
  * Get the numerical value of a style prop.
  */
 function getStylePropertyValue(element: Element, property: string) {
-<<<<<<< HEAD
-  return parseInt(getComputedStyle(element).getPropertyValue(property) || '0')
-=======
   return parseInt( getComputedStyle(element).getPropertyValue(property) || '0' )
->>>>>>> 293319ef0bc840a582e379e9f610ef5f5064998a
 }
 
 interface Connection {
