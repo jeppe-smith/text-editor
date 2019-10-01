@@ -266,20 +266,32 @@ export default function pagination() {
               resolvedPosition = view.state.doc.resolve(position.pos)
 
               /**
-               * Prevent empty nodes as result of splitting.
+               * If we're at the very beginning of a node we traverse it's
+               * parents until we are no longer at the beginning of a given
+               * node. This way we prevent empty nodes as a result of split.
                *
-               * If the position is at the very beginning or end of a node,
-               * then we would end up with an empty node after splitting. We
-               * don' want that so we move the position out of the node
-               * before splitting.
+               * To prevent nodes hanging in the bottom margin of a page we
+               * have to check if we're at the beginning of a node before
+               * checking if we're at the end.
                */
-              if (resolvedPosition.parentOffset === 0) {
+              while (
+                resolvedPosition.parentOffset === 0 &&
+                resolvedPosition.node().type.name !== 'page'
+              ) {
                 resolvedPosition = view.state.doc.resolve(
                   resolvedPosition.pos - 1,
                 )
-              } else if (
+              }
+
+              /**
+               * If we're at the very end of a node we traverse it's parents
+               * until we're no longer at the end. This prevents empty nodes
+               * as a result of splitting.
+               */
+              while (
                 resolvedPosition.parentOffset ===
-                resolvedPosition.parent.content.size
+                  resolvedPosition.parent.content.size &&
+                resolvedPosition.node().type.name !== 'page'
               ) {
                 resolvedPosition = view.state.doc.resolve(
                   resolvedPosition.pos + 1,

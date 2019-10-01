@@ -8,35 +8,29 @@ function createNode(options: NodeSpec) {
 const schema = new Schema({
   nodes: {
     doc: createNode({
-      content: 'page+'
+      content: 'page+',
     }),
     page: createNode({
-      content: 'wrapper+',
+      content: 'block+',
       parseDOM: [{ tag: '.page' }],
       toDOM() {
         return ['div', { class: 'page' }, 0]
-      }
-    }),
-    wrapper: createNode({
-      content: 'block+',
-      toDOM() {
-        return ['div', 0]
-      }
+      },
     }),
     paragraph: createNode({
       content: 'inline*',
       group: 'block',
       parseDOM: [
         {
-          tag: 'p'
-        }
+          tag: 'p',
+        },
       ],
       toDOM() {
         return ['p', 0]
-      }
+      },
     }),
-    text: createNode({ group: 'inline' })
-  }
+    text: createNode({ group: 'inline' }),
+  },
 })
 
 export default schema
