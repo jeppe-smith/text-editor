@@ -2,7 +2,8 @@ import { Plugin, PluginKey } from 'prosemirror-state'
 import {
   canJoin,
   Step,
-  ReplaceStep as PRReplaceStep
+  ReplaceStep as PRReplaceStep,
+  canSplit,
 } from 'prosemirror-transform'
 import { EditorView } from 'prosemirror-view'
 import { Slice } from 'prosemirror-model'
@@ -37,7 +38,7 @@ function getInnerCoords(element: Element) {
     top: top + scrollY + paddingTop,
     right: right + scrollX - paddingRight,
     bottom: bottom + scrollY - paddingBottom,
-    left: left + scrollX + paddingLeft
+    left: left + scrollX + paddingLeft,
   }
 }
 
@@ -45,7 +46,7 @@ function getInnerCoords(element: Element) {
  * Get the numerical value of a style prop.
  */
 function getStylePropertyValue(element: Element, property: string) {
-  return parseInt( getComputedStyle(element).getPropertyValue(property) || '0' )
+  return parseInt(getComputedStyle(element).getPropertyValue(property) || '0')
 }
 
 interface Connection {
@@ -86,15 +87,15 @@ export default function pagination() {
         /**
          * Map the splits and the connections so we know their positions in the new doc.
          */
-        splits = splits.map((split) => {
+        splits = splits.map(split => {
           return {
             pos: tr.mapping.mapResult(split.pos).pos,
-            connections: split.connections.map((connection) => {
+            connections: split.connections.map(connection => {
               return {
                 from: tr.mapping.mapResult(connection.from).pos,
-                to: tr.mapping.mapResult(connection.to).pos
+                to: tr.mapping.mapResult(connection.to).pos,
               }
-            })
+            }),
           }
         })
 
@@ -106,27 +107,29 @@ export default function pagination() {
               const to = state.doc.resolve(connection.to)
 
               return to.parentOffset === 0
-            })
+            }),
           }
         })
 
         if (tr.getMeta(pluginKey) === 'split') {
-          const step = tr.steps[0] as unknown as IReplaceStep
-          const { pos, depth } = state.doc.resolve(tr.mapping.mapResult(step.from).pos)
+          const step = (tr.steps[0] as unknown) as IReplaceStep
+          const { pos, depth } = state.doc.resolve(
+            tr.mapping.mapResult(step.from).pos,
+          )
           const splitPos = state.doc.resolve(pos - depth)
           let connections: Connection[] = []
 
           for (let i = 1; i < depth + 1; i++) {
             const to = state.doc.resolve(splitPos.pos + i)
             const from = state.doc.resolve(splitPos.pos - i)
-            
+
             if (to.nodeAfter && !to.nodeAfter!.isText) {
               connections = [
                 ...connections,
                 {
                   from: from.pos,
-                  to: to.pos
-                }
+                  to: to.pos,
+                },
               ]
             }
           }
@@ -135,7 +138,7 @@ export default function pagination() {
         }
 
         return new PaginationState(splits)
-      }
+      },
     },
     appendTransaction(transactions, prevState, state) {
       let replaceSteps: ReplaceStep[] = []
@@ -152,10 +155,10 @@ export default function pagination() {
         (all, transaction) => [
           ...all,
           ...transaction.steps.filter(
-            (step): step is ReplaceStep => step instanceof PRReplaceStep
-          )
+            (step): step is ReplaceStep => step instanceof PRReplaceStep,
+          ),
         ],
-        []
+        [],
       )
 
       if (!replaceSteps.length) {
@@ -175,7 +178,7 @@ export default function pagination() {
 
         if (canJoin(transaction.doc, splitPos)) {
           transaction.join(splitPos)
-  
+
           split.connections.forEach(connection => {
             const from = transaction.mapping.mapResult(connection.from).pos
             const to = transaction.mapping.mapResult(connection.to).pos
@@ -204,7 +207,7 @@ export default function pagination() {
         update(view: EditorView) {
           const pages = view.dom.querySelectorAll('.page')
 
-          pages.forEach((page) => {
+          pages.forEach(page => {
             if (page.scrollHeight > page.clientHeight) {
               const { scrollY } = window
               const transaction = view.state.tr
@@ -226,11 +229,6 @@ export default function pagination() {
               let resolvedPosition
 
               /**
-               * The node to split.
-               */
-              let node
-
-              /**
                * Scroll the bottom of the page in to view so we can get the position.
                */
               window.scrollTo({ top: coordY })
@@ -248,7 +246,7 @@ export default function pagination() {
                */
               position = view.posAtCoords({
                 top: coordY - 1,
-                left: coordX + 1
+                left: coordX + 1,
               })
 
               /**
@@ -256,52 +254,55 @@ export default function pagination() {
                */
               if (position == null) {
                 throw new Error(
-                  `Cannot find position at coords top: ${coordY}, left: ${coordX}`
+                  `Cannot find position at coords top: ${coordY}, left: ${coordX}`,
                 )
               }
 
               /**
-               * Scroll back to intiial scroll position.
+               * Scroll back to initial scroll position.
                */
               window.scrollTo({ top: scrollY })
 
               resolvedPosition = view.state.doc.resolve(position.pos)
-              node = view.state.doc.nodeAt(resolvedPosition.pos)
-
-              let splitAtPos = resolvedPosition.pos
-              let splitAtDepth = resolvedPosition.depth
 
               /**
                * Prevent empty nodes as result of splitting.
+               *
+               * If the position is at the very beginning or end of a node,
+               * then we would end up with an empty node after splitting. We
+               * don' want that so we move the position out of the node
+               * before splitting.
                */
-              if (resolvedPosition.parentOffset === resolvedPosition.parent.content.size) {
-                splitAtDepth++
-                splitAtPos++
-                node = view.state.doc.nodeAt(splitAtPos)
-              } else if (resolvedPosition.parentOffset === 0) {
-                splitAtDepth--
-                splitAtPos--
-                node = view.state.doc.nodeAt(splitAtPos)
-              }
-
-              /**
-               * Node should not be null here but just in case.
-               */
-              if (node == null) {
-                throw Error(
-                  `could not split at resolved position ${resolvedPosition}`
+              if (resolvedPosition.parentOffset === 0) {
+                resolvedPosition = view.state.doc.resolve(
+                  resolvedPosition.pos - 1,
+                )
+              } else if (
+                resolvedPosition.parentOffset ===
+                resolvedPosition.parent.content.size
+              ) {
+                resolvedPosition = view.state.doc.resolve(
+                  resolvedPosition.pos + 1,
                 )
               }
 
-              transaction.setMeta(pluginKey, 'split')
-              transaction.setMeta('addToHistory', false)
-              transaction.split(splitAtPos, splitAtDepth)
+              if (
+                canSplit(
+                  view.state.doc,
+                  resolvedPosition.pos,
+                  resolvedPosition.depth,
+                )
+              ) {
+                transaction.setMeta(pluginKey, 'split')
+                transaction.setMeta('addToHistory', false)
+                transaction.split(resolvedPosition.pos, resolvedPosition.depth)
 
-              view.dispatch(transaction)
+                view.dispatch(transaction)
+              }
             }
           })
-        }
+        },
       }
-    }
+    },
   })
 }
