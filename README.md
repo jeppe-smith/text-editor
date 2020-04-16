@@ -1,3 +1,7 @@
+# Page broken text editor
+
+POC of an online text editor with pages that are 1:1 with a pdf export.
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
